@@ -16,8 +16,10 @@ func main() {
 	params["country"] = "us"
 	//Then, declare a variable with your apiKey from https://newsapi.org
 	apiKey := "api-key"
+	var keyTest = newsapigo.GetAPIKey()
+	keyTest.SetKey(apiKey)
 	// To get a response from top headlines endpoint, call GetTopHeadlines
-	responseToHeadlines := newsapigo.GetTopHeadlines(params, apiKey)
+	responseToHeadlines := newsapigo.GetTopHeadlines(params)
 
 	// You can  display the status of the response:
 	fmt.Printf("Status: %s", responseToHeadlines.Status)
