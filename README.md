@@ -31,27 +31,30 @@ import (
 ## Initialization
 
 ```go
-//Declare a map and the apiKey
+// Declare a map for the value of the params
 params := make(map[string]string)
+// Set a unique api key provided in https://newsapi.org/
 apiKey := "XXXXXXXXXXXXXXXXXXXXXX"
+var key = GetAPIKey()
+key.SetKey(apiKey)
 ```
 ## Top Headlines
 
 ```go
   params["country"] = "us"
-  newsapigo.GetTopHeadlines(params, apiKey)
+  newsapigo.GetTopHeadlines(params)
 ```
 
 ## Everything
 
 ```go
   params["q"] = "bitcoin"
-  newsapigo.GetEverything(params, apiKey)
+  newsapigo.GetEverything(params)
 ```
 
 ## Sources
 
 ```go
   params["category"] = "general"
-  newsapigo.GetSources(params, apiKey)
+  newsapigo.GetSources(params)
 ```

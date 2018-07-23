@@ -11,6 +11,11 @@ type Article struct {
 	PublishedAt string  `json:"publishedAt"`
 }
 
+// NewsAPIKey stores the api key
+type NewsAPIKey struct {
+	Key string
+}
+
 // NewsResponse stores all data received from the request.
 type NewsResponse struct {
 	Status       string    `json:"status"`
@@ -38,19 +43,3 @@ type URLProvider struct {
 	Everything   string
 	Sources      string
 }
-
-// func FetchNews(country, apiKey string) NewsResponse {
-// 	client := &http.Client{Timeout: time.Second * 2}
-// 	url := fmt.Sprintf("https://newsapi.org/v2/top-headlines?country=%s&apiKey=%s", country, apiKey)
-// 	req, err := http.NewRequest("GET", url, nil)
-// 	resp, err := client.Do(req)
-// 	if err != nil {
-// 		log.Fatal("Do: ", err)
-// 	}
-// 	defer resp.Body.Close()
-// 	var response NewsResponse
-// 	if err := json.NewDecoder(resp.Body).Decode(&response); err != nil {
-// 		log.Println(err)
-// 	}
-// 	return response
-// }

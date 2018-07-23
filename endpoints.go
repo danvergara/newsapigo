@@ -16,11 +16,22 @@ func init() {
 	provider.Sources = "https://newsapi.org/v2/sources?"
 }
 
+var instance *NewsAPIKey
+
+// GetAPIKey returns an pointer to an instance of the NewsApiKey struct
+// Makes sure that there is an only on instance
+func GetAPIKey() *NewsAPIKey {
+	if instance == nil {
+		instance = new(NewsAPIKey)
+	}
+	return instance
+}
+
 // GetEverything returns a NewsResponse.
 // Search through millions of articles from over 30,000 large and small news
 // sources and blogs. This includes breaking news as well as lesser articles.
-func GetEverything(payload map[string]string, apiKey string) NewsResponse {
-	url := concreteURL(provider.Everything, payloadString(payload), apiKey)
+func GetEverything(payload map[string]string) NewsResponse {
+	url := concreteURL(provider.Everything, payloadString(payload), GetAPIKey().Key)
 	req := makeRquest(url)
 	resp := getAPIResponse(req)
 	return encodeJSON(resp)
@@ -31,8 +42,8 @@ func GetEverything(payload map[string]string, apiKey string) NewsResponse {
 // (/v2/top-headlines) are available from. It's mainly a convenience endpoint
 // that you can use to keep track of the publishers available on the API,
 // and you can pipe it straight through to your users.
-func GetSources(payload map[string]string, apiKey string) NewsResponse {
-	url := concreteURL(provider.Sources, payloadString(payload), apiKey)
+func GetSources(payload map[string]string) NewsResponse {
+	url := concreteURL(provider.Sources, payloadString(payload), GetAPIKey().Key)
 	req := makeRquest(url)
 	resp := getAPIResponse(req)
 	return encodeJSON(resp)
@@ -41,11 +52,16 @@ func GetSources(payload map[string]string, apiKey string) NewsResponse {
 // GetTopHeadlines returns a NewsResponse with 20 articles by default.
 // Provides live top and breaking headlines for a country, specific category in
 // a country, single source, or multiple sources.
-func GetTopHeadlines(payload map[string]string, apiKey string) NewsResponse {
-	url := concreteURL(provider.TopHeadlines, payloadString(payload), apiKey)
+func GetTopHeadlines(payload map[string]string) NewsResponse {
+	url := concreteURL(provider.TopHeadlines, payloadString(payload), GetAPIKey().Key)
 	req := makeRquest(url)
 	resp := getAPIResponse(req)
 	return encodeJSON(resp)
+}
+
+// SetKey set the key of the the unique instance of the NewsApiKey struct
+func (a *NewsAPIKey) SetKey(keyString string) {
+	a.Key = keyString
 }
 
 func concreteURL(basicURL, payloadStr, apiKey string) string {
@@ -66,7 +82,7 @@ func encodeJSON(resp *http.Response) NewsResponse {
 }
 
 func getAPIResponse(req *http.Request) *http.Response {
-	client := &http.Client{Timeout: time.Second * 2}
+	client := &http.Client{Timeout: time.Second * 3}
 	resp, err := client.Do(req)
 	if err != nil {
 		log.Fatal("Do: ", err)
