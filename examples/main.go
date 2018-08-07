@@ -2,8 +2,11 @@ package main
 
 import (
 	"fmt"
+	"log"
+	"os"
 
 	"github.com/dany2691/newsapigo"
+	"github.com/joho/godotenv"
 )
 
 func main() {
@@ -15,7 +18,13 @@ func main() {
 	params := make(map[string]string)
 	params["country"] = "us"
 	//Then, declare a variable with your apiKey from https://newsapi.org
-	apiKey := "api-key"
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	apiKey := os.Getenv("API_KEY")
+
 	var keyTest = newsapigo.GetAPIKey()
 	keyTest.SetKey(apiKey)
 	// To get a response from top headlines endpoint, call GetTopHeadlines
