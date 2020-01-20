@@ -9,11 +9,7 @@ type Article struct {
 	URL         string  `json:"url"`
 	URLToImage  string  `json:"urlToImage"`
 	PublishedAt string  `json:"publishedAt"`
-}
-
-// NewsAPIKey stores the api key
-type NewsAPIKey struct {
-	Key string
+	Content     string  `json:"contentt"`
 }
 
 // NewsResponse stores all data received from the request.
@@ -35,11 +31,4 @@ type Source struct {
 	Category    string `json:"category,omitempty"`
 	Language    string `json:"language,omitempty"`
 	Country     string `json:"country,omitempty"`
-}
-
-// URLProvider stores the urls of the endpoints
-type URLProvider struct {
-	TopHeadlines string
-	Everything   string
-	Sources      string
 }
