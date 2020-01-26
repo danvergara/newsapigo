@@ -1,0 +1,94 @@
+version: 2.1
+
+executors:
+  go-builder-executor:
+    docker:
+      - image: circleci/golang:latest
+  
+commands:
+  init:
+    steps:
+      - restore_cache:
+        keys:
+          - gomod-cache-{{ checksum "go.sum" }}
+  
+  execute:
+    steps:
+     - run:
+       name: "Download modules"
+       command: go mod download
+     - run:
+       name: "Run linter"
+       command: >
+        if [ "${LATEST}" = true ] && [ -z "${SKIP_GOLINT}" ]; then
+          go get -u golang.org/x/lint/golint
+          golint ./...
+        fi
+
+     - run:
+       name: "Run gofmt"
+       command: >
+        if [[ "${LATEST}" = true ]]; then
+          diff -u <(echo -n) <(gofmt -d -e .)
+        fi
+     - run:
+       name: "Run go vet"
+       command: >
+        if [[ "${LATEST}" = true ]]; then
+          go vet -v ./...
+        fi
+     - run:
+       name: "Run tests"
+       command: "go test -v ./..."
+  
+  cleanup:
+    steps:
+      - save_cache:
+        key: gomod-cache-{{ checksum "go.sum" }}
+        paths:
+          - /go/pkg/mod
+
+jobs:
+  test: &test
+    executor: go-builder-executor
+    steps:
+      - checkout
+      - init
+      - execute
+      - cleanup
+  "1.13":
+    <<: *test
+    docker:
+      - image: circleci/golang:1.13
+  "1.12":
+    <<: *test
+    docker:
+      - image: circleci/golang:1.12
+  "1.11":
+    <<: *test
+    docker:
+      - image: circleci/golang:1.11
+  "1.10":
+    <<: *test
+    docker:
+      - image: circleci/golang:1.10
+  "1.9":
+    <<: *test
+    docker:
+      - image: circleci/golang:1.9
+  "1.8"
+    <<: *test
+    docker:
+      - image: circleci/golang:1.8
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - "test"
+      - "1.13"
+      - "1.12"
+      - "1.11"
+      - "1.10"
+      - "1.9"
+      - "1.8"
