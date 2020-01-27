@@ -444,7 +444,7 @@ func TestGetTopHeadlinesBySource(t *testing.T) {
 			},
 		}
 
-		if r.URL.Path != "/v2/to-headlines" {
+		if r.URL.Path != "/v2/top-headlines" {
 			t.Error("Bad top-headlines path")
 		}
 
