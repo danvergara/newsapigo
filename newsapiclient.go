@@ -41,7 +41,7 @@ func (c *NewsClient) GetEverything(queryParams url.Values) (NewsResponse, error)
 		return errorNewsResponse(err.Error(), ""), err
 	}
 
-	response, err := c.decodeResponse(resp)
+	response, _ := c.decodeResponse(resp)
 	return response, nil
 }
 
@@ -71,7 +71,7 @@ func (c *NewsClient) GetSources(queryParams url.Values) (NewsResponse, error) {
 		return errorNewsResponse(err.Error(), ""), err
 	}
 
-	response, err := c.decodeResponse(resp)
+	response, _ := c.decodeResponse(resp)
 	return response, nil
 }
 
@@ -99,7 +99,7 @@ func (c *NewsClient) GetTopHeadlines(queryParams url.Values) (NewsResponse, erro
 		return errorNewsResponse(err.Error(), ""), err
 	}
 
-	response, err := c.decodeResponse(resp)
+	response, _ := c.decodeResponse(resp)
 	return response, nil
 }
 
