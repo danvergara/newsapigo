@@ -184,7 +184,7 @@ type SourcesArgs struct {
 	Country string
 }
 
-// QueryParams adds all query params int a url.Values struct given an EverythingArgs struct
+// QueryParams adds all query params int a url.Values struct given an SourcesArgs struct
 // Returns a instances of url.Values with all passed query params
 func (args SourcesArgs) QueryParams() url.Values {
 	q := make(url.Values)
