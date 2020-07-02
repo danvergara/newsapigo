@@ -6,13 +6,14 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetAllSources(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		allSourcesResponse := NewsResponse{
+		allSourcesResponse := Response{
 			Status: "ok",
 			Sources: []Source{
 				{
@@ -27,7 +28,7 @@ func TestGetAllSources(t *testing.T) {
 			},
 		}
 
-		if r.URL.Path != "/v2/sources" {
+		if r.URL.Path != "/sources" {
 			t.Error("Bad sources path")
 		}
 
@@ -36,14 +37,17 @@ func TestGetAllSources(t *testing.T) {
 	}))
 
 	defer sv.Close()
+	rawURL, _ := url.Parse(sv.URL)
 
+	testClient := &http.Client{Timeout: time.Minute}
 	c := NewsClient{
-		BaseURL: sv.URL,
-		APIKey:  "FAKE_API_KEY",
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
 	}
 
-	params := url.Values{}
-	newsapiResponse, err := c.GetSources(params)
+	params := SourcesArgs{}
+	newsapiResponse, err := c.Sources(params)
 
 	assert.Nil(t, err)
 	assert.Greater(t, len(newsapiResponse.Sources), 0)
@@ -51,7 +55,7 @@ func TestGetAllSources(t *testing.T) {
 
 func TestGetEnglishSources(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		englishSourcesResponse := NewsResponse{
+		englishSourcesResponse := Response{
 			Status: "ok",
 			Sources: []Source{
 				{
@@ -66,7 +70,7 @@ func TestGetEnglishSources(t *testing.T) {
 			},
 		}
 
-		if r.URL.Path != "/v2/sources" {
+		if r.URL.Path != "/sources" {
 			t.Error("Bad sources path")
 		}
 
@@ -76,15 +80,20 @@ func TestGetEnglishSources(t *testing.T) {
 
 	defer sv.Close()
 
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
 	c := NewsClient{
-		BaseURL: sv.URL,
-		APIKey:  "FAKE_API_KEY",
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
 	}
 
-	params := url.Values{}
-	params.Add("language", "eng")
+	params := SourcesArgs{
+		Language: "eng",
+	}
 
-	newsapiResponse, err := c.GetSources(params)
+	newsapiResponse, err := c.Sources(params)
 
 	assert.Nil(t, err)
 	assert.Greater(t, len(newsapiResponse.Sources), 0)
@@ -92,7 +101,7 @@ func TestGetEnglishSources(t *testing.T) {
 
 func TestGetEnglishSourceInUS(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		USSourcesResponse := NewsResponse{
+		USSourcesResponse := Response{
 			Status: "ok",
 			Sources: []Source{
 				{
@@ -106,7 +115,7 @@ func TestGetEnglishSourceInUS(t *testing.T) {
 				},
 			},
 		}
-		if r.URL.Path != "/v2/sources" {
+		if r.URL.Path != "/sources" {
 			t.Error("Bad sources path")
 		}
 
@@ -116,16 +125,21 @@ func TestGetEnglishSourceInUS(t *testing.T) {
 
 	defer sv.Close()
 
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
 	c := NewsClient{
-		BaseURL: sv.URL,
-		APIKey:  "FAKE_API_KEY",
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
 	}
 
-	params := url.Values{}
-	params.Add("langauge", "en")
-	params.Add("country", "us")
+	params := SourcesArgs{
+		Language: "eng",
+		Country:  "us",
+	}
 
-	newsapiResponse, err := c.GetSources(params)
+	newsapiResponse, err := c.Sources(params)
 
 	assert.Nil(t, err)
 	assert.Greater(t, len(newsapiResponse.Sources), 0)

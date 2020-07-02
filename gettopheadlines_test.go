@@ -6,13 +6,14 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetTopHeadlinesByCountry(t *testing.T) {
+func TestTopHeadlinesByCountry(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		topHeadlinesByContruyResponse := NewsResponse{
+		topHeadlinesByContruyResponse := Response{
 			Status:       "ok",
 			TotalResults: 38,
 			Articles: []Article{
@@ -279,7 +280,7 @@ func TestGetTopHeadlinesByCountry(t *testing.T) {
 			},
 		}
 
-		if r.URL.Path != "/v2/top-headlines" {
+		if r.URL.Path != "/top-headlines" {
 			t.Error("Bad top-headlines path")
 		}
 
@@ -289,15 +290,20 @@ func TestGetTopHeadlinesByCountry(t *testing.T) {
 
 	defer sv.Close()
 
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
 	c := NewsClient{
-		BaseURL: sv.URL,
-		APIKey:  "FAKE_API_KEY",
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
 	}
 
-	params := url.Values{}
-	params.Add("contury", "us")
+	params := TopHeadlinesArgs{
+		Country: "us",
+	}
 
-	newsapiResponse, err := c.GetTopHeadlines(params)
+	newsapiResponse, err := c.TopHeadlines(params)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 20, len(newsapiResponse.Articles))
@@ -305,9 +311,9 @@ func TestGetTopHeadlinesByCountry(t *testing.T) {
 	assert.Equal(t, 38, newsapiResponse.TotalResults)
 }
 
-func TestGetTopHeadlinesBySource(t *testing.T) {
+func TestTopHeadlinesBySource(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		topHeadlinesBySourceResponse := NewsResponse{
+		topHeadlinesBySourceResponse := Response{
 			Status:       "ok",
 			TotalResults: 38,
 			Articles: []Article{
@@ -444,7 +450,7 @@ func TestGetTopHeadlinesBySource(t *testing.T) {
 			},
 		}
 
-		if r.URL.Path != "/v2/top-headlines" {
+		if r.URL.Path != "/top-headlines" {
 			t.Error("Bad top-headlines path")
 		}
 
@@ -454,14 +460,19 @@ func TestGetTopHeadlinesBySource(t *testing.T) {
 
 	defer sv.Close()
 
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
 	c := NewsClient{
-		BaseURL: sv.URL,
-		APIKey:  "FAKE_API_KEY",
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
 	}
 
-	params := url.Values{}
-	params.Add("sources", "bbc-news")
-	newsapiResponse, err := c.GetTopHeadlines(params)
+	params := TopHeadlinesArgs{
+		Sources: []string{"bbc-news"},
+	}
+	newsapiResponse, err := c.TopHeadlines(params)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 10, len(newsapiResponse.Articles))

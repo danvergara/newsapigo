@@ -7,13 +7,14 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetEverythingBitcoin(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		exampleResponse := NewsResponse{
+		exampleResponse := Response{
 			Status:       "ok",
 			TotalResults: 3421,
 			Articles: []Article{
@@ -286,7 +287,7 @@ func TestGetEverythingBitcoin(t *testing.T) {
 			panic("Oops")
 		}
 
-		if r.URL.Path != "/v2/everything" {
+		if r.URL.Path != "/everything" {
 			t.Error("Bad everything path")
 		}
 
@@ -294,16 +295,19 @@ func TestGetEverythingBitcoin(t *testing.T) {
 	}))
 
 	defer sv.Close()
+	rawURL, _ := url.Parse(sv.URL)
 
-	queryParams := url.Values{}
-	queryParams.Add("q", "bitcoin")
-
+	queryParams := EverythingArgs{
+		Q: "bitcoin",
+	}
+	testClient := &http.Client{Timeout: time.Minute}
 	c := NewsClient{
-		BaseURL: sv.URL,
-		APIKey:  "FAKE_API_KEY",
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
 	}
 
-	newsapiResponse, err := c.GetEverything(queryParams)
+	newsapiResponse, err := c.Everything(queryParams)
 
 	assert.Equal(t, "ok", newsapiResponse.Status)
 	assert.Equal(t, 3421, newsapiResponse.TotalResults)
@@ -313,7 +317,7 @@ func TestGetEverythingBitcoin(t *testing.T) {
 
 func TestGetEverythingApple(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		exampleResponse := NewsResponse{
+		exampleResponse := Response{
 			Status:       "ok",
 			TotalResults: 2639,
 			Articles: []Article{
@@ -582,7 +586,7 @@ func TestGetEverythingApple(t *testing.T) {
 
 		encoder := json.NewEncoder(w)
 
-		if r.URL.Path != "/v2/everything" {
+		if r.URL.Path != "/everything" {
 			t.Error("Bad everything path")
 		}
 
@@ -590,20 +594,23 @@ func TestGetEverythingApple(t *testing.T) {
 	}))
 
 	defer sv.Close()
+	rawURL, _ := url.Parse(sv.URL)
 
+	testClient := &http.Client{Timeout: time.Minute}
 	c := NewsClient{
-		BaseURL: sv.URL,
-		APIKey:  "FAKE_API_KEY",
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
 	}
 
-	queryParams := url.Values{}
+	queryParams := EverythingArgs{
+		Q:      "apple",
+		From:   time.Now(),
+		To:     time.Now().Add(24 * time.Hour),
+		SortBy: "popularity",
+	}
 
-	queryParams.Add("q", "apple")
-	queryParams.Add("from", "2020-01-16")
-	queryParams.Add("to", "2020-01-16")
-	queryParams.Add("sortBy", "popularity")
-
-	newsapiResponse, err := c.GetEverything(queryParams)
+	newsapiResponse, err := c.Everything(queryParams)
 
 	assert.Nil(t, err)
 	assert.Equal(t, 20, len(newsapiResponse.Articles))
