@@ -1,5 +1,7 @@
 package newsapigo
 
+import "fmt"
+
 // Article stores the data in the article. It is an item in the Articles slice.
 type Article struct {
 	Source      *Source `json:"source,omitempty"`
@@ -12,14 +14,15 @@ type Article struct {
 	Content     string  `json:"contentt"`
 }
 
-// NewsResponse stores all data received from the request.
-type NewsResponse struct {
+// Response stores all data received from the request.
+type Response struct {
 	Status       string    `json:"status"`
+	Code         string    `json:"code"`
 	TotalResults int       `json:"totalResults"`
-	Message      string    `json:"message,omitempty"`
-	Code         string    `json:"code,omitempty"`
 	Articles     []Article `json:"articles,omitempty"`
 	Sources      []Source  `json:"sources,omitempty"`
+	Message      string    `json:"message"`
+	StatusCode   int       `json:"status_code"`
 }
 
 // Source stores the data of the source that published the article.
@@ -31,4 +34,23 @@ type Source struct {
 	Category    string `json:"category,omitempty"`
 	Language    string `json:"language,omitempty"`
 	Country     string `json:"country,omitempty"`
+}
+
+func newError(msg, code string) Response {
+	return Response{
+		Status:  "error",
+		Message: msg,
+		Code:    code,
+	}
+}
+
+// ErrorResponse implements the Error interfaces so that it can be returned as an error
+type ErrorResponse struct {
+	Code    string `json:"code"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+func (err *ErrorResponse) Error() string {
+	return fmt.Sprintf("%s (%s) API error: %s", err.Status, err.Code, err.Message)
 }
