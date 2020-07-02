@@ -1,11 +1,5 @@
 package newsapigo
 
-type errorResponse struct {
-	Status  string `json:"status"`
-	Code    string `json:"code"`
-	Message string `json:"message"`
-}
-
 // Article stores the data in the article. It is an item in the Articles slice.
 type Article struct {
 	Source      *Source `json:"source,omitempty"`
@@ -21,10 +15,12 @@ type Article struct {
 // Response stores all data received from the request.
 type Response struct {
 	Status       string    `json:"status"`
+	Code         string    `json:"code"`
 	TotalResults int       `json:"totalResults"`
-	Code         string    `json:"code,omitempty"`
 	Articles     []Article `json:"articles,omitempty"`
 	Sources      []Source  `json:"sources,omitempty"`
+	Message      string    `json:"message"`
+	StatusCode   int       `json:"status_code"`
 }
 
 // Source stores the data of the source that published the article.
@@ -38,8 +34,8 @@ type Source struct {
 	Country     string `json:"country,omitempty"`
 }
 
-func newError(msg, code string) errorResponse {
-	return errorResponse{
+func newError(msg, code string) Response {
+	return Response{
 		Status:  "error",
 		Message: msg,
 		Code:    code,
