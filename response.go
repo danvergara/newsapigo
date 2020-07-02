@@ -1,5 +1,7 @@
 package newsapigo
 
+import "fmt"
+
 // Article stores the data in the article. It is an item in the Articles slice.
 type Article struct {
 	Source      *Source `json:"source,omitempty"`
@@ -40,4 +42,15 @@ func newError(msg, code string) Response {
 		Message: msg,
 		Code:    code,
 	}
+}
+
+// ErrorResponse implements the Error interfaces so that it can be returned as an error
+type ErrorResponse struct {
+	Code    string `json:"code"`
+	Status  string `json:"status"`
+	Message string `json:"message"`
+}
+
+func (err *ErrorResponse) Error() string {
+	return fmt.Sprintf("%s (%s) API error: %s", err.Status, err.Code, err.Message)
 }

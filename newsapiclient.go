@@ -61,12 +61,24 @@ func (c *NewsClient) Everything(args EverythingArgs) (Response, error) {
 	// Deserialize the response and return the newsapi data
 	defer res.Body.Close()
 
-	var response Response
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return newError(err.Error(), "unexpectedError"), err
-	}
+	switch res.StatusCode {
+	case 200:
+		var response Response
+		if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+			return newError(err.Error(), "unexpectedError"), err
+		}
+		return response, nil
+	case 400, 401, 403, 500:
+		var errRes ErrorResponse
+		if err := json.NewDecoder(res.Body).Decode(&errRes); err != nil {
+			return newError(err.Error(), "unexpectedError"), err
+		}
 
-	return response, nil
+		return newError(errRes.Message, errRes.Code), &errRes
+	default:
+		// handle unexpected status codes
+		return newError("unknown error", "error"), fmt.Errorf("unexpected status code %d", res.StatusCode)
+	}
 }
 
 // Sources return a NewsResponse.
@@ -98,12 +110,24 @@ func (c *NewsClient) Sources(args SourcesArgs) (Response, error) {
 	// Deserialize the response and return the newsapi data
 	defer res.Body.Close()
 
-	var response Response
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return newError(err.Error(), "unexpectedError"), err
-	}
+	switch res.StatusCode {
+	case 200:
+		var response Response
+		if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+			return newError(err.Error(), "unexpectedError"), err
+		}
+		return response, nil
+	case 400, 401, 403, 500:
+		var errRes ErrorResponse
+		if err := json.NewDecoder(res.Body).Decode(&errRes); err != nil {
+			return newError(err.Error(), "unexpectedError"), err
+		}
 
-	return response, nil
+		return newError(errRes.Message, errRes.Code), &errRes
+	default:
+		// handle unexpected status codes
+		return newError("unknown error", "error"), fmt.Errorf("unexpected status code %d", res.StatusCode)
+	}
 }
 
 // TopHeadlines returns a NewsResponse with 20 articles by default.
@@ -133,10 +157,22 @@ func (c *NewsClient) TopHeadlines(args TopHeadlinesArgs) (Response, error) {
 	// Deserialize the response and return the newsapi data
 	defer res.Body.Close()
 
-	var response Response
-	if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
-		return newError(err.Error(), "unexpectedError"), err
-	}
+	switch res.StatusCode {
+	case 200:
+		var response Response
+		if err := json.NewDecoder(res.Body).Decode(&response); err != nil {
+			return newError(err.Error(), "unexpectedError"), err
+		}
+		return response, nil
+	case 400, 401, 403, 500:
+		var errRes ErrorResponse
+		if err := json.NewDecoder(res.Body).Decode(&errRes); err != nil {
+			return newError(err.Error(), "unexpectedError"), err
+		}
 
-	return response, nil
+		return newError(errRes.Message, errRes.Code), &errRes
+	default:
+		// handle unexpected status codes
+		return newError("unknown error", "error"), fmt.Errorf("unexpected status code %d", res.StatusCode)
+	}
 }
