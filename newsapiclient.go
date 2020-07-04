@@ -68,7 +68,7 @@ func (c *NewsClient) Everything(args EverythingArgs) (Response, error) {
 			return newError(err.Error(), "unexpectedError"), err
 		}
 		return response, nil
-	case 400, 401, 403, 500:
+	case 400, 401, 429, 500:
 		var errRes ErrorResponse
 		if err := json.NewDecoder(res.Body).Decode(&errRes); err != nil {
 			return newError(err.Error(), "unexpectedError"), err
@@ -117,7 +117,7 @@ func (c *NewsClient) Sources(args SourcesArgs) (Response, error) {
 			return newError(err.Error(), "unexpectedError"), err
 		}
 		return response, nil
-	case 400, 401, 403, 500:
+	case 400, 401, 429, 500:
 		var errRes ErrorResponse
 		if err := json.NewDecoder(res.Body).Decode(&errRes); err != nil {
 			return newError(err.Error(), "unexpectedError"), err
@@ -164,7 +164,7 @@ func (c *NewsClient) TopHeadlines(args TopHeadlinesArgs) (Response, error) {
 			return newError(err.Error(), "unexpectedError"), err
 		}
 		return response, nil
-	case 400, 401, 403, 500:
+	case 400, 401, 429, 500:
 		var errRes ErrorResponse
 		if err := json.NewDecoder(res.Body).Decode(&errRes); err != nil {
 			return newError(err.Error(), "unexpectedError"), err
