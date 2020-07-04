@@ -479,3 +479,112 @@ func TestTopHeadlinesBySource(t *testing.T) {
 	assert.Equal(t, "ok", newsapiResponse.Status)
 	assert.Equal(t, 38, newsapiResponse.TotalResults)
 }
+
+func TestTopHeadlinesBadRequest(t *testing.T) {
+	// Create a fake server in order to return a fake but realistic response
+	// Status Code: Bad Request
+	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return a status code equals to 400 - Bad Request
+		w.WriteHeader(http.StatusBadRequest)
+		// Set the error response
+		errorResponse := newError("The request was unacceptable, often due to a missing or misconfigured parameter", "parameterInvalid")
+		encoder := json.NewEncoder(w)
+
+		encoder.Encode(errorResponse)
+	}))
+
+	defer sv.Close()
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
+	// Create the client of the package
+	c := NewsClient{
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
+	}
+
+	// Create a SourcesArgs instance that will be used as query params
+	params := TopHeadlinesArgs{
+		Country: "3g56hj34",
+	}
+
+	newsErrorResponse, err := c.TopHeadlines(params)
+
+	// assertions section
+	assert.NotNil(t, err)
+	assert.Equal(t, "error", newsErrorResponse.Status)
+	assert.Equal(t, "The request was unacceptable, often due to a missing or misconfigured parameter", newsErrorResponse.Message)
+	assert.Equal(t, "parameterInvalid", newsErrorResponse.Code)
+}
+
+func TestTopHeadlinesUnauthorized(t *testing.T) {
+	// Create a fake server in order to return a fake but realistic response
+	// Status code: Unauthorized
+	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return a status code equals to 400 - Bad Request
+		w.WriteHeader(http.StatusUnauthorized)
+		errorResponse := newError("Your API key has been disabled", "apiKeyDisabled")
+		encoder := json.NewEncoder(w)
+		encoder.Encode(errorResponse)
+	}))
+
+	defer sv.Close()
+
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
+	// Create the client of the package
+	c := NewsClient{
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "WRONG_API_KEY",
+	}
+
+	// Create a TopHeadlinesArgs instance that will be used as query params
+	params := TopHeadlinesArgs{
+		Sources: []string{"bbc-news"},
+	}
+	newsErrorResponse, err := c.TopHeadlines(params)
+	// assertions section
+	assert.NotNil(t, err)
+	assert.Equal(t, "error", newsErrorResponse.Status)
+	assert.Equal(t, "Your API key has been disabled", newsErrorResponse.Message)
+	assert.Equal(t, "apiKeyDisabled", newsErrorResponse.Code)
+}
+
+func TestTopHeadlinesServerError(t *testing.T) {
+	// Create a fake server in order to return a fake but realistic response
+	// Status code: Server Error
+	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return a status code equals to 500 - Server Error
+		w.WriteHeader(http.StatusUnauthorized)
+		errorResponse := newError("This shouldn't happen, and if it does then it's our fault, not yours. Try the request again shortly", "unexpectedError")
+		encoder := json.NewEncoder(w)
+		encoder.Encode(errorResponse)
+	}))
+
+	defer sv.Close()
+
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
+	// Create the client of the package
+	c := NewsClient{
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
+	}
+
+	// Create a TopHeadlinesArgs instance that will be used as query params
+	params := TopHeadlinesArgs{
+		Country: "us",
+	}
+
+	newsErrorResponse, err := c.TopHeadlines(params)
+	// assertions section
+	assert.NotNil(t, err)
+	assert.Equal(t, "error", newsErrorResponse.Status)
+	assert.Equal(t, "This shouldn't happen, and if it does then it's our fault, not yours. Try the request again shortly", newsErrorResponse.Message)
+	assert.Equal(t, "unexpectedError", newsErrorResponse.Code)
+}
