@@ -12,7 +12,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetEverythingBitcoin(t *testing.T) {
+func TestEverythingBitcoin(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		exampleResponse := Response{
 			Status:       "ok",
@@ -315,7 +315,7 @@ func TestGetEverythingBitcoin(t *testing.T) {
 	assert.Nil(t, err)
 }
 
-func TestGetEverythingApple(t *testing.T) {
+func TestEverythingApple(t *testing.T) {
 	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		exampleResponse := Response{
 			Status:       "ok",
@@ -616,4 +616,116 @@ func TestGetEverythingApple(t *testing.T) {
 	assert.Equal(t, 20, len(newsapiResponse.Articles))
 	assert.Equal(t, "ok", newsapiResponse.Status)
 	assert.Equal(t, 2639, newsapiResponse.TotalResults)
+}
+
+func TestEverythingBadRequest(t *testing.T) {
+	// Create a fake server in order to return a fake but realistic response
+	// Status Code: Bad Request
+	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return a status code equals to 400 - Bad Request
+		w.WriteHeader(http.StatusBadRequest)
+		// Set the error response
+		errorResponse := newError("The request was unacceptable, often due to a missing or misconfigured parameter", "parameterInvalid")
+		encoder := json.NewEncoder(w)
+
+		encoder.Encode(errorResponse)
+	}))
+
+	defer sv.Close()
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
+	// Create the client of the package
+	c := NewsClient{
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
+	}
+
+	// Create a everythingArgs instance that will be used as query params
+	queryParams := EverythingArgs{
+		Q: "sdfavwe",
+	}
+
+	newsErrorResponse, err := c.Everything(queryParams)
+
+	// assertions section
+	assert.NotNil(t, err)
+	assert.Equal(t, "error", newsErrorResponse.Status)
+	assert.Equal(t, "The request was unacceptable, often due to a missing or misconfigured parameter", newsErrorResponse.Message)
+	assert.Equal(t, "parameterInvalid", newsErrorResponse.Code)
+}
+
+func TestEverythingUnauthorized(t *testing.T) {
+	// Create a fake server in order to return a fake but realistic response
+	// Status code: Unauthorized
+	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return a status code equals to 400 - Bad Request
+		w.WriteHeader(http.StatusUnauthorized)
+		errorResponse := newError("Your API key has been disabled", "apiKeyDisabled")
+		encoder := json.NewEncoder(w)
+		encoder.Encode(errorResponse)
+	}))
+
+	defer sv.Close()
+
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
+	// Create the client of the package
+	c := NewsClient{
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "WRONG_API_KEY",
+	}
+
+	// Create a everythingArgs instance that will be used as query params
+	queryParams := EverythingArgs{
+		Q: "bitcoin",
+	}
+
+	newsErrorResponse, err := c.Everything(queryParams)
+
+	// assertions section
+	assert.NotNil(t, err)
+	assert.Equal(t, "error", newsErrorResponse.Status)
+	assert.Equal(t, "Your API key has been disabled", newsErrorResponse.Message)
+	assert.Equal(t, "apiKeyDisabled", newsErrorResponse.Code)
+}
+
+func TestEverythingServerError(t *testing.T) {
+	// Create a fake server in order to return a fake but realistic response
+	// Status code: Server Error
+	sv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Return a status code equals to 500 - Server Error
+		w.WriteHeader(http.StatusUnauthorized)
+		errorResponse := newError("This shouldn't happen, and if it does then it's our fault, not yours. Try the request again shortly", "unexpectedError")
+		encoder := json.NewEncoder(w)
+		encoder.Encode(errorResponse)
+	}))
+
+	defer sv.Close()
+
+	rawURL, _ := url.Parse(sv.URL)
+
+	testClient := &http.Client{Timeout: time.Minute}
+	// Create the client of the package
+	c := NewsClient{
+		baseURL:    rawURL,
+		httpClient: testClient,
+		apiKey:     "FAKE_API_KEY",
+	}
+
+	// Create a everythingArgs instance that will be used as query params
+	queryParams := EverythingArgs{
+		Q: "bitcoin",
+	}
+
+	newsErrorResponse, err := c.Everything(queryParams)
+
+	// assertions section
+	assert.NotNil(t, err)
+	assert.Equal(t, "error", newsErrorResponse.Status)
+	assert.Equal(t, "This shouldn't happen, and if it does then it's our fault, not yours. Try the request again shortly", newsErrorResponse.Message)
+	assert.Equal(t, "unexpectedError", newsErrorResponse.Code)
 }
