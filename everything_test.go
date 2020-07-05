@@ -605,8 +605,8 @@ func TestEverythingApple(t *testing.T) {
 
 	queryParams := EverythingArgs{
 		Q:      "apple",
-		From:   time.Now(),
-		To:     time.Now().Add(24 * time.Hour),
+		From:   "2020-07-04",
+		To:     "2020-07-04",
 		SortBy: "popularity",
 	}
 
