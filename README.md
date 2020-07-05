@@ -26,88 +26,64 @@ import (
 ## Initialization
 
 
+First, all what you need is to instantiate an newsapigo client, for that purpose, we implement a convenient function called New:
+
 ```go
 
 import (
   "net/url"
   "os"
+
+  "github.com/danvergara/newsapigo"
 )
 
-// Instantiate the Client provided by this library
-// Don't forget provide you API Key
+// Instantiates the Client provided by this library
+// Don't forget provide your API Key
 // You can get one from the official site: https://newsapi.org/register
-c := newsapigo.NewsClient{
-        APIKey: os.Getenv("API_KEY")
-}
-
+c := newsapigo.NewClient(os.Getenv("API_KEY"))
 ```
 
 This client only has three methods (one for each endpoint provided by the API):
-GetTopHeadlines, GetEverything and GetSources.
+TopHeadlines, Everything and Sources.
 
-If you want customize the request, for convenience, create a Values object (from the standard library "net/url") and add the necessary query params.
+If you want to customize the request, for convenience, use the corresponding structs for each method. Those structs are converted to url.Vlaues under the hood, using the common public API *QueryParams*.
 
-Each method receives a Values object as shown below:
+Each method receives a struct object as shown below:
 
 ## Top Headlines
 
 ```go
-  params := url.Values{}
-  params.Add("country", "us")
-  response, err := c.GetTopHeadlines(params)
+// This corresponds to '/v2/top-headlines'
+
+queryParams := TopHeadlinesArgs{
+	Sources: []string{"bbc-news"},
+}
+
+response, err := c.TopHeadlines(queryParams)
 ```
 
 ## Everything
 
 ```go
-  params := url.Values{}
-  params.Add("q", "bitcoin")
-  response, err := c.GetEverything(params)
+// This corresponds to '/v2/everything'
+
+queryParams := EverythingArgs{
+	Q: "bitcoin",
+}
+
+response, err := c.Everything(queryParams)
 ```
 
 ## Sources
 
 ```go
-  params := url.Values{}
-  params.Add("category", "general")
-  response, err := c.GetSources(params)
-```
+// This corresponds to '/v2/sources'
 
-Each method returns an instance of the NewsResponse struct:
-
-```go
-type NewsResponse struct {
-	Status       string    `json:"status"`
-	TotalResults int       `json:"totalResults"`
-	Message      string    `json:"message,omitempty"`
-	Code         string    `json:"code,omitempty"`
-	Articles     []Article `json:"articles,omitempty"`
-	Sources      []Source  `json:"sources,omitempty"`
+queryParams := SourcesArgs{
+	Language: "eng",
+	Country:  "us",
 }
-```
-These structs should match with the response from News API:
 
-```go
-type Article struct {
-	Source      *Source `json:"source,omitempty"`
-	Author      string  `json:"author"`
-	Title       string  `json:"title"`
-	Description string  `json:"description"`
-	URL         string  `json:"url"`
-	URLToImage  string  `json:"urlToImage"`
-	PublishedAt string  `json:"publishedAt"`
-	Content     string  `json:"contentt"`
-}
+response, err := c.Sources(queryParams)
 ```
-
-```go
-type Source struct {
-	ID          string `json:"id,omitempty"`
-	Name        string `json:"name"`
-	Description string `json:"description,omitempty"`
-	URL         string `json:"url,omitempty"`
-	Category    string `json:"category,omitempty"`
-	Language    string `json:"language,omitempty"`
-	Country     string `json:"country,omitempty"`
-}
-```
+For more information on what fields the structs contain, check the file queryparams.go at the root of the project.
