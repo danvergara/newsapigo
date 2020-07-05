@@ -4,7 +4,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"time"
 )
 
 // EverythingArgs is a convenient way to build all the query params used to tweak the request for the /everything endpoint
@@ -35,11 +34,11 @@ type EverythingArgs struct {
 	// A date and optional time for the oldest article allowed.
 	// This should be in ISO 8601 format (e.g. 2020-07-01 or 2020-07-01T04:35:51)
 	// Default: the oldest according to your plan.
-	From time.Time
+	From string
 	// A date and optional time for the newest article allowed.
 	// This should be in ISO 8601 format (e.g. 2020-07-01 or 2020-07-01T04:35:51)
 	// Default: the newest according to your plan.
-	To time.Time
+	To string
 	// The 2-letter ISO-639-1 code of the language you want to get headlines for.
 	// Possible options: ardeenesfrheitnlnoptruseudzh. Default: all languages returned.
 	Language string
@@ -80,12 +79,12 @@ func (args EverythingArgs) QueryParams() url.Values {
 		q.Add("excludeDomains", strings.Join(args.ExcludeDomains, ","))
 	}
 
-	if !args.From.IsZero() {
-		q.Add("from", args.From.Format(time.RFC3339))
+	if args.From != "" {
+		q.Add("from", args.From)
 	}
 
-	if !args.To.IsZero() {
-		q.Add("to", args.To.Format(time.RFC3339))
+	if args.To != "" {
+		q.Add("to", args.To)
 	}
 
 	if args.Language != "" {
