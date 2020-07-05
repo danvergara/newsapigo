@@ -22,9 +22,9 @@ type NewsClient struct {
 	httpClient *http.Client
 }
 
-// New returns a new instance of the NewsClient, given an valid apiKey
+// New returns a new instance of the NewsClient, it expects a valid API Key as a parameter.
 // The Client has all the necessary methods to interact with the NewsAPI REST API
-func New(apiKey string) *NewsClient {
+func NewClient(apiKey string) *NewsClient {
 	c := &http.Client{Timeout: time.Minute}
 
 	return &NewsClient{
